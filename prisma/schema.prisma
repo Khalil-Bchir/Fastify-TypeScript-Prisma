@@ -1,0 +1,49 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  userId        Int                @id @default(autoincrement())
+  username      String             @unique
+  password      String
+  salt          String
+  email         String             @unique
+  organizations UserOrganization[]
+}
+
+model Organization {
+  organizationId Int                @id @default(autoincrement())
+  name           String             @unique
+  users          UserOrganization[]
+}
+
+model UserOrganization {
+  userOrgId        Int               @id @default(autoincrement())
+  userId           Int?
+  organizationId   Int?
+  role             String
+  user             User?             @relation(fields: [userId], references: [userId])
+  organization     Organization?     @relation(fields: [organizationId], references: [organizationId])
+  userRoles        UserRole[]
+  invitationStatus InvitationStatus?
+
+  @@unique([userId, organizationId])
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+}
+
+model UserRole {
+  roleId    Int              @id @default(autoincrement())
+  roleName  String
+  userOrgId Int
+  userOrg   UserOrganization @relation(fields: [userOrgId], references: [userOrgId])
+}
